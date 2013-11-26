@@ -15,7 +15,7 @@ is returned if this is the case.
 
 **HTTP Verb:** GET
 
-**URL:** <CONTEXT ROOT>/otp/monitor
+**URL:** (CONTEXT ROOT)/otp/monitor
 
 **Parameters:** None
 
@@ -25,7 +25,7 @@ is returned if this is the case.
 
 **HTTP Verb:** POST
 
-**URL:** <CONTEXT ROOT>/otp/email
+**URL:** (CONTEXT ROOT)/otp/email
 
 **Parameters:**
 
@@ -38,7 +38,7 @@ number (cellular providers must be configured in `config.properties`).
 
 **HTTP Verb:** POST
 
-**URL:** <CONTEXT ROOT>/otp/text
+**URL:** (CONTEXT ROOT)/otp/text
 
 **Parameters:**
 
@@ -51,7 +51,7 @@ the 'tokenValid' property of the JSON response will be set to 'true', and the to
 
 **HTTP Verb:** POST
 
-**URL:** <CONTEXT ROOT>/otp/validate
+**URL:** (CONTEXT ROOT)/otp/validate
 
 **Parameters:**
 
@@ -99,6 +99,6 @@ this directory.
 
 ### Other Configuration Guidelines
 
-	* jOTP should, in theory, work on any Java web container implementing the Servlet 3.0
-		specification.  Testing has only taken place on Tomcat 7, however.
-	* Be sure to enable SSL on any production instances of jOTP.
+* jOTP should, in theory, work on any Java web container implementing the Servlet 3.0
+	specification.  Testing has only taken place on Tomcat 7, however.
+* Be sure to enable SSL on any production instances of jOTP.
