@@ -12,36 +12,52 @@ briefly demonstrates the public API:
 
 **Description:** The monitor function simply lets the caller know whether or not the application is available.  The string, 'OK'
 is returned if this is the case.
+
 **HTTP Verb:** GET
+
 **URL:** <CONTEXT ROOT>/otp/monitor
+
 **Parameters:** None
 
 ### Email Function
 
 **Description:** The email function generates a one-time password token and sends it to the requested email address.
+
 **HTTP Verb:** POST
+
 **URL:** <CONTEXT ROOT>/otp/email
+
 **Parameters:**
+
 *address* - Email address to send the token to.
 
 ### Text Function
 
 **Description:** The text function generates a one-time password token and attempts to send it to the requested phone
 number (cellular providers must be configured in `config.properties`).
+
 **HTTP Verb:** POST
+
 **URL:** <CONTEXT ROOT>/otp/text
+
 **Parameters:**
+
 *number* - Phone number to send the token to.
 
 ### Validate Function
 
 **Description:** The validate function determines whether or not a user/token pair are valid.  If the pair is valid,
 the 'tokenValid' property of the JSON response will be set to 'true', and the token will be automatically invalidated.
+
 **HTTP Verb:** POST
+
 **URL:** <CONTEXT ROOT>/otp/validate
+
 **Parameters:**
+
 *uid* - User ID.  This can be either an email address or phone number, depending upon which was used to generate the
 token initially.
+
 *token* - The string value of the token sent to the user.
 
 ## Configuration
@@ -80,3 +96,9 @@ this directory.
 	# Alltel=message.alltel.com
 	# Virgin Mobile=vmobl.com
 	TextProviderHosts=vtext.com,txt.att.net,messaging.sprintpcs.com,tmomail.net
+
+### Other Configuration Guidelines
+
+	* jOTP should, in theory, work on any Java web container implementing the Servlet 3.0
+		specification.  Testing has only taken place on Tomcat 7, however.
+	* Be sure to enable SSL on any production instances of jOTP.
