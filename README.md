@@ -1,6 +1,6 @@
 # jOTP
 
-https://travis-ci.org/upcrob/jOTP.png
+[![Build Status](https://travis-ci.org/[upcrob]/[jOTP].png)](https://travis-ci.org/[upcrob]/[jOTP])
 
 jOTP is a lightweight web application for generating and validating one-time passwords as a secondary factor of authentication.
 Passwords may be received via email or text message.
