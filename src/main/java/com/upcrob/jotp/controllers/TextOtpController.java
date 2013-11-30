@@ -88,7 +88,7 @@ public class TextOtpController implements Controller {
 	
 	private void sendToken(String token, String number) throws AddressException, MessagingException {
 		// Build recipient list
-		Set<String> hosts = config.getTextProviderHosts();
+		Set<String> hosts = config.getMobileProviderHosts();
 		Address[] addresses = new Address[hosts.size()];
 		int i = 0;
 		for (String host : hosts) {

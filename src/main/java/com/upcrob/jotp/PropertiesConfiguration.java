@@ -20,7 +20,7 @@ public class PropertiesConfiguration implements Configuration {
 	private int smtpPort;
 	private String smtpUsername;
 	private String smtpPassword;
-	private Set<String> textProviderHosts;
+	private Set<String> mobileProviderHosts;
 	private int tokenLifetime;
 	
 	private PropertiesConfiguration(String path) {
@@ -73,7 +73,7 @@ public class PropertiesConfiguration implements Configuration {
 		if (config.smtpPassword == null)
 			throw new ConfigurationException("No SmtpPassword specified in configuration.");
 		
-		p = props.getProperty("TextProviderHosts");
+		p = props.getProperty("MobileProviderHosts");
 		if (p == null)
 			throw new ConfigurationException("No TextProviderHosts specified in configuration.");
 		String[] hosts = p.split(",");
@@ -81,7 +81,7 @@ public class PropertiesConfiguration implements Configuration {
 		for (String host : hosts) {
 			pHosts.add(host);
 		}
-		config.textProviderHosts = pHosts;
+		config.mobileProviderHosts = pHosts;
 		
 		
 		p = props.getProperty("TokenLifetime");
@@ -123,8 +123,8 @@ public class PropertiesConfiguration implements Configuration {
 	}
 
 	@Override
-	public Set<String> getTextProviderHosts() {
-		return textProviderHosts;
+	public Set<String> getMobileProviderHosts() {
+		return mobileProviderHosts;
 	}
 
 	@Override

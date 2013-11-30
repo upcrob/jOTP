@@ -53,7 +53,7 @@ public interface Configuration {
 	 * should be added to the set of provider
 	 * hosts.
 	 */
-	public Set<String> getTextProviderHosts();
+	public Set<String> getMobileProviderHosts();
 	
 	/**
 	 * Get the maximum lifetime of a one-time
