@@ -22,7 +22,7 @@ public class MonitorController implements Controller {
 	@Override
 	public String execute(HttpServletRequest request) {
 		log.debug("Monitored - OK");
-		return "OK";
+		return "{\"status\": \"OK\"}";
 	}
 
 }
