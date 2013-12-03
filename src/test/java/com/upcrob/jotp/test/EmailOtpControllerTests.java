@@ -23,6 +23,7 @@ public class EmailOtpControllerTests {
 		when(req.getParameter("address")).thenReturn(null);
 		
 		Configuration config = mock(Configuration.class);
+		when(config.isOptimisticResponse()).thenReturn(false);
 		Model model = mock(Model.class);
 		EmailOtpController eoc = new EmailOtpController(config, model);
 		eoc.setSender(mock(Sender.class));
@@ -36,6 +37,7 @@ public class EmailOtpControllerTests {
 		when(req.getParameter("address")).thenReturn("notvalidaddr");
 		
 		Configuration config = mock(Configuration.class);
+		when(config.isOptimisticResponse()).thenReturn(false);
 		Model model = mock(Model.class);
 		EmailOtpController eoc = new EmailOtpController(config, model);
 		eoc.setSender(mock(Sender.class));
@@ -49,6 +51,7 @@ public class EmailOtpControllerTests {
 		when(req.getParameter("address")).thenReturn("test-test.test_test@example.com");
 		
 		Configuration config = mock(Configuration.class);
+		when(config.isOptimisticResponse()).thenReturn(false);
 		Model model = mock(Model.class);
 		EmailOtpController eoc = new EmailOtpController(config, model);
 		eoc.setSender(mock(Sender.class));
@@ -62,6 +65,7 @@ public class EmailOtpControllerTests {
 		when(req.getParameter("address")).thenReturn("test@example.com");
 		
 		Configuration config = mock(Configuration.class);
+		when(config.isOptimisticResponse()).thenReturn(false);
 		Model model = mock(Model.class);
 		EmailOtpController eoc = new EmailOtpController(config, model);
 		Sender s = mock(Sender.class);

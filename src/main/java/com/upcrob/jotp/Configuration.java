@@ -60,4 +60,15 @@ public interface Configuration {
 	 * password.
 	 */
 	public int getTokenLifetime();
+	
+	/**
+	 * Whether or not responses from the token controllers
+	 * should be optimistic.  That is, whether the controller
+	 * should wait to see if the token could be sent successfully
+	 * or if this should occur in a separate thread.  A value
+	 * of true indicates that this the controller shouldn't
+	 * wait to find out whether the send was successful, and
+	 * should assume that it was.
+	 */
+	public boolean isOptimisticResponse();
 }

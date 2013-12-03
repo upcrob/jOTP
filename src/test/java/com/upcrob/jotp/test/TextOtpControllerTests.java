@@ -24,6 +24,7 @@ public class TextOtpControllerTests {
 		when(req.getParameter("number")).thenReturn(null);
 		
 		Configuration config = mock(Configuration.class);
+		when(config.isOptimisticResponse()).thenReturn(false);
 		Model model = mock(Model.class);
 		TextOtpController toc = new TextOtpController(config, model);
 		String ret = toc.execute(req);
@@ -36,6 +37,7 @@ public class TextOtpControllerTests {
 		when(req.getParameter("number")).thenReturn("notvalid");
 		
 		Configuration config = mock(Configuration.class);
+		when(config.isOptimisticResponse()).thenReturn(false);
 		Model model = mock(Model.class);
 		TextOtpController toc = new TextOtpController(config, model);
 		toc.setSender(mock(Sender.class));
@@ -49,6 +51,7 @@ public class TextOtpControllerTests {
 		when(req.getParameter("number")).thenReturn("5555555555");
 		
 		Configuration config = mock(Configuration.class);
+		when(config.isOptimisticResponse()).thenReturn(false);
 		Model model = mock(Model.class);
 		TextOtpController toc = new TextOtpController(config, model);
 		toc.setSender(mock(Sender.class));
@@ -75,6 +78,7 @@ public class TextOtpControllerTests {
 		when(req.getParameter("number")).thenReturn("5555555555");
 		
 		Configuration config = mock(Configuration.class);
+		when(config.isOptimisticResponse()).thenReturn(false);
 		Model model = mock(Model.class);
 		TextOtpController c = new TextOtpController(config, model);
 		Sender s = mock(Sender.class);

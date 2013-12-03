@@ -22,6 +22,7 @@ public class PropertiesConfiguration implements Configuration {
 	private String smtpPassword;
 	private Set<String> mobileProviderHosts;
 	private int tokenLifetime;
+	private boolean optimisticResponse;
 	
 	private PropertiesConfiguration(String path) {
 		props = new Properties();
@@ -83,11 +84,20 @@ public class PropertiesConfiguration implements Configuration {
 		}
 		config.mobileProviderHosts = pHosts;
 		
-		
 		p = props.getProperty("TokenLifetime");
 		if (p == null || !p.matches("^[0-9]+$"))
 			throw new ConfigurationException("Invalid TokenLifetime. Expecting an integer, got: " + p);
 		config.tokenLifetime = Integer.parseInt(p);
+		
+		// Set OptimisticResponse to true by default
+		p = props.getProperty("OptimisticResponse");
+		if (p == null || "true".equals(p)) {
+			config.optimisticResponse = true;
+		} else if ("false".equals(p)) {
+			config.optimisticResponse = false;
+		} else {
+			throw new ConfigurationException("Invalid OptimisticResponse.  Should be 'true' or 'false'.");
+		}
 		
 		return config;
 	}
@@ -130,5 +140,10 @@ public class PropertiesConfiguration implements Configuration {
 	@Override
 	public int getTokenLifetime() {
 		return tokenLifetime;
+	}
+	
+	@Override
+	public boolean isOptimisticResponse() {
+		return optimisticResponse;
 	}
 }

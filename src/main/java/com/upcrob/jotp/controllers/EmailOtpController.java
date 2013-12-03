@@ -56,9 +56,38 @@ public class EmailOtpController implements Controller {
 
 			// Send token
 			try {
-				log.debug("Attempting to send token, '" + token
-						+ "' to email address: " + email);
-				sender.send(email, "Your one-time use token: " + token);
+				if (config.isOptimisticResponse()) {
+					// Optimistic response - don't wait for send operation to complete
+					// Create a temporary thread for sending the token
+					final String tmpEmail = email;
+					final String tmpToken = token;
+					Thread t = new Thread() {
+						@Override
+						public void run() {
+							try {
+								log.debug("Attempting to send token, '"
+										+ tmpToken
+										+ "' optimistically to email address: "
+										+ tmpEmail);
+								sender.send(tmpEmail, "Your one-time use token: "
+										+ tmpToken);
+								log.info("Sent token to email address, '"
+									+ tmpEmail
+									+ "' successfully.");
+							} catch (SenderException e) {
+								model.removeToken(tmpEmail);
+								log.error("Failed to send token to, '" + tmpEmail
+										+ "'.  Exception was: " + e.getMessage());
+							}
+						}
+					};
+					t.start();
+				} else {
+					// Non-optimistic response - wait for send operation to complete
+					log.debug("Attempting to send token, '" + token
+							+ "' non-optimistically to email address: " + email);
+					sender.send(email, "Your one-time use token: " + token);
+				}
 				log.info("Sent token to email address, '" + email
 						+ "' successfully.");
 				sb.append("{\"error:\": \"\"}");

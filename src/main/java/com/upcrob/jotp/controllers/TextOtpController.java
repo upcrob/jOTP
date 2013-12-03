@@ -60,9 +60,42 @@ public class TextOtpController implements Controller {
 			
 			// Send token
 			try {
-				log.debug("Attempting to send token, '" + token + "' to: " + phone);
-				sendToken(token, phone);
-				log.info("Sent token to phone, '" + phone + "' successfully.");
+				if (config.isOptimisticResponse()) {
+					// Optimistic response - don't wait for send operation to complete
+					// Create a temporary thread for sending the token
+					final String tmpToken = token;
+					final String tmpPhone = phone;
+					Thread t = new Thread() {
+						@Override
+						public void run() {
+							try {
+								log.debug("Attempting to send token, '"
+										+ tmpToken
+										+ "' optimistically to phone number: "
+										+ tmpPhone);
+								sendToken(tmpToken, tmpPhone);
+								log.info("Sent token to phone, '"
+										+ tmpPhone
+										+ "' successfully.");
+							} catch (SenderException e) {
+								log.error("Failed to send token to '"
+										+ tmpPhone
+										+ "'.  Exception was: "
+										+ e.getMessage());
+							}
+						}
+					};
+					t.start();
+				} else {
+					// Non-optimistic response - wait for send operation to complete
+					log.debug("Attempting to send token, '"
+							+ token
+							+ "' non-optimistically to phone number: "
+							+ phone);
+					sendToken(token, phone);
+					log.info("Sent token to phone, '" + phone + "' successfully.");
+				}
+				
 				sb.append("{\"error:\": \"\"}");
 			} catch (SenderException e) {
 				log.error("Failed to send token to '"
