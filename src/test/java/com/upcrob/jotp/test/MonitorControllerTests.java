@@ -17,6 +17,6 @@ public class MonitorControllerTests {
 	public void testMonitorResponse() {
 		HttpServletRequest req = mock(HttpServletRequest.class);
 		MonitorController mc = new MonitorController();
-		assertEquals(mc.execute(req), "OK");
+		assertEquals(mc.execute(req), "{\"status\": \"OK\"}");
 	}
 }
