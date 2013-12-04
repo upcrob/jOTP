@@ -79,6 +79,14 @@ this directory.
 	# This is the lifetime (in seconds) that one-time use password
 	# tokens have before they automatically expire.
 	TokenLifetime=60
+	
+	# Property that defines whether or not the servlet thread should
+	# block on SMTP I/O.  If OptimisticResponse is set to true,
+	# OTP generation endpoints will return responses more quickly,
+	# but will not alert clients if an error occurred while sending
+	# the one-time password.  This property is optional and defaults
+	# to true.
+	OptimisticResponse=true
 
 	# SMTP settings.  This should be configured to use a (largely)
 	# unmonitored email inbox.
