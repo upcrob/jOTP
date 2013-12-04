@@ -105,7 +105,7 @@ this directory.
 	# US Cellular=email.uscc.net
 	# Alltel=message.alltel.com
 	# Virgin Mobile=vmobl.com
-	TextProviderHosts=vtext.com,txt.att.net,messaging.sprintpcs.com,tmomail.net
+	MobileProviderHosts=vtext.com,txt.att.net,messaging.sprintpcs.com,tmomail.net
 
 ### Other Configuration Guidelines
 
