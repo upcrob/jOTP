@@ -142,7 +142,7 @@ this directory.
 	# US Cellular=email.uscc.net
 	# Alltel=message.alltel.com
 	# Virgin Mobile=vmobl.com
-	MobileProviderHosts
+	MobileProviderHosts:
 	  - vtext.com
 	  - txt.att.net
 	  - messaging.sprintpcs.com
