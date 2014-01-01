@@ -1,5 +1,6 @@
 package com.upcrob.jotp;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -7,18 +8,6 @@ import java.util.Set;
  * configuration information.
  */
 public interface Configuration {
-	/**
-	 * Minimum OTP length.  This should not
-	 * be greater than the maximum length.
-	 */
-	public int getOtpMinLength();
-	
-	/**
-	 * Maximum one-time password length.  This
-	 * should not be greater than the minimum length.
-	 */
-	public int getOtpMaxLength();
-	
 	/**
 	 * Get the hostname of the SMTP server.
 	 */
@@ -56,19 +45,52 @@ public interface Configuration {
 	public Set<String> getMobileProviderHosts();
 	
 	/**
-	 * Get the maximum lifetime of a one-time
-	 * password.
+	 * Whether the controller should wait to see if the token
+	 * could be sent successfully or if this should occur in a
+	 * separate thread.  A value of false indicates that this the
+	 * controller shouldn't wait to find out whether the send was
+	 * successful, and should assume that it was.
 	 */
-	public int getTokenLifetime();
+	public boolean isBlockingSmtp();
 	
 	/**
-	 * Whether or not responses from the token controllers
-	 * should be optimistic.  That is, whether the controller
-	 * should wait to see if the token could be sent successfully
-	 * or if this should occur in a separate thread.  A value
-	 * of true indicates that this the controller shouldn't
-	 * wait to find out whether the send was successful, and
-	 * should assume that it was.
+	 * Get the set of Clients specified in the configuration.
+	 * A Client holds the configuration for a specific client
+	 * application or set of client applications (token lifetime, etc).
 	 */
-	public boolean isOptimisticResponse();
+	public Map<String, Client> getClients();
+	
+	/**
+	 * Get the type of Tokenstore to use.  Valid values are as follows:
+	 *   local - Tokens stored in-memory.  Best for single instance
+	 *     installations.
+	 *   jdbc - Tokens stored in an external relational database.
+	 *   redis - Tokens stored in an external Redis server.
+	 */
+	public TokenstoreType getTokenstoreType();
+	
+	/**
+	 * Get the JDBC connection string used when the Tokenstore type
+	 * is set to 'jdbc'.
+	 */
+	public String getJdbcString();
+	
+	/**
+	 * Get the hostname of the Redis server, if Redis is being used
+	 * as the tokenstore.
+	 */
+	public String getRedisHost();
+	
+	/**
+	 * Get the port that the Redis server is listening on.  If no
+	 * port has been defined in the Configuration, this method will
+	 * return -1.
+	 */
+	public int getRedisPort();
+	
+	/**
+	 * Get the password required to authenticate to a Redis server.
+	 * Returns null if no password is set and/or required.
+	 */
+	public String getRedisPassword();
 }

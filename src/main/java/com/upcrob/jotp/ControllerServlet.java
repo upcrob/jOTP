@@ -1,7 +1,9 @@
 package com.upcrob.jotp;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,7 +30,7 @@ public class ControllerServlet extends HttpServlet {
     private Map<String, Controller> getControllers;
     private Map<String, Controller> postControllers;
     private Configuration config;
-	private Model model;
+	private Tokenstore tokenstore;
 	private Reaper reaper;
     
     /**
@@ -44,8 +46,18 @@ public class ControllerServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Controller controller = getControllers.get(request.getPathInfo());
 		if (controller != null) {
+			// Add request parameters to map
+			Map<String, String> paramMap = new HashMap<String, String>();
+			Enumeration<String> paramNames = request.getParameterNames();
+			while (paramNames.hasMoreElements()) {
+				String name = paramNames.nextElement();
+				paramMap.put(name, request.getParameter(name));
+			}
+			
+			// Execute request
+			Response resp = controller.execute(paramMap);
 			PrintWriter out = response.getWriter();
-			out.write(controller.execute(request));
+			out.write(resp.toString());
 			out.close();
 		}
 	}
@@ -56,8 +68,18 @@ public class ControllerServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Controller controller = postControllers.get(request.getPathInfo());
 		if (controller != null) {
+			// Add request parameters to map
+			Map<String, String> paramMap = new HashMap<String, String>();
+			Enumeration<String> paramNames = request.getParameterNames();
+			while (paramNames.hasMoreElements()) {
+				String name = paramNames.nextElement();
+				paramMap.put(name, request.getParameter(name));
+			}
+						
+			// Execute request
+			Response resp = controller.execute(paramMap);
 			PrintWriter out = response.getWriter();
-			out.write(controller.execute(request));
+			out.write(resp.toString());
 			out.close();
 		}
 	}
@@ -66,20 +88,37 @@ public class ControllerServlet extends HttpServlet {
 	public void init() throws ServletException {
 		Logger log = LoggerFactory.getLogger(ControllerServlet.class);
 		log.info("Initializing servlet...");
-		
-		// Load model
-        model = Model.getInstance();
         
         // Load config
-        String configPath = System.getProperty("user.home") + "/.jotp/config.properties";
+        String configPath = System.getProperty("user.home") + "/.jotp/config.yaml";
         log.info("Attempting to load configuration from file: " + configPath);
         try {
-			config = PropertiesConfiguration.loadPropertiesConfiguration(configPath);
+			config = new YamlConfiguration(configPath);
 		} catch (ConfigurationException e) {
 			log.error("An error occurred while loading configuration: " + e.getMessage());
 			throw new ServletException("An error occurred during configuration.  See the jOTP log for details.");
+		} catch (FileNotFoundException e) {
+			log.error("Configuration file not found: " + configPath);
+			throw new ServletException("An error occurred during configuration.  See the jOTP log for details.");
 		}
         log.info("Configuration loaded successfully.");
+        
+        // Setup Tokenstore
+        TokenstoreType type = config.getTokenstoreType();
+        switch (type) {
+        	case LOCAL:
+        		// Use a local, in-memory tokenstore
+        		tokenstore = new LocalTokenstore(config);
+        		break;
+        	case JDBC:
+        		// Use a JDBC datasource for the tokenstore
+        		tokenstore = new JdbcTokenstore(config);
+        		break;
+        	case REDIS:
+        		// Use a Redis server for the tokenstore
+        		tokenstore = new RedisTokenstore(config);
+        		break;
+        }
         
         // Map controllers to URLs
         MonitorController mc = new MonitorController();
@@ -88,12 +127,12 @@ public class ControllerServlet extends HttpServlet {
         
         postControllers = new HashMap<String, Controller>();
         postControllers.put("/sys/monitor", mc);
-        postControllers.put("/otp/text", new TextOtpController(config, model));
-        postControllers.put("/otp/email", new EmailOtpController(config, model));
-        postControllers.put("/otp/validate", new OtpValidationController(model));
+        postControllers.put("/otp/text", new TextOtpController(config, tokenstore));
+        postControllers.put("/otp/email", new EmailOtpController(config, tokenstore));
+        postControllers.put("/otp/validate", new OtpValidationController(config, tokenstore));
         
         // Start reaper thread
-        reaper = new Reaper(model);
+        reaper = new Reaper(tokenstore);
         reaper.start();
 	}
 }

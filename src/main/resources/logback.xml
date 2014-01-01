@@ -7,14 +7,23 @@
 		</encoder>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- Hourly roll over -->
-			<fileNamePattern>${user.home}/.jotp/logs/activity-%d{yyyy-MM-dd_HH}.log</fileNamePattern>
+			<fileNamePattern>${user.home}/.jotp/logs/activity-%d{yyyy-MM-dd_HH}.log
+			</fileNamePattern>
 
 			<!-- Keep 7 days (168 hours) worth of history -->
 			<maxHistory>168</maxHistory>
 		</rollingPolicy>
 	</appender>
 
-	<root level="debug">
+	<appender name="CONSOLEOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>
+				%d{HH:mm:ss.SSS} %-5level %logger{60} %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+	<root level="info">
 		<appender-ref ref="STDOUT" />
 	</root>
 </configuration>

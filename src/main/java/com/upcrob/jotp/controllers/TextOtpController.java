@@ -1,20 +1,23 @@
 package com.upcrob.jotp.controllers;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.upcrob.jotp.Client;
 import com.upcrob.jotp.Configuration;
 import com.upcrob.jotp.Controller;
 import com.upcrob.jotp.EmailSender;
-import com.upcrob.jotp.Model;
+import com.upcrob.jotp.JsonResponse;
+import com.upcrob.jotp.Response;
 import com.upcrob.jotp.Sender;
 import com.upcrob.jotp.SenderException;
 import com.upcrob.jotp.TokenGenerator;
+import com.upcrob.jotp.Tokenstore;
+import com.upcrob.jotp.TokenstoreException;
 
 /**
  * Describes a Controller that generates and sends one-time
@@ -26,87 +29,106 @@ import com.upcrob.jotp.TokenGenerator;
  */
 public class TextOtpController implements Controller {
 	
-	private Model model;
+	private Tokenstore tokenstore;
 	private Configuration config;
 	private Logger log;
 	private Sender sender;
 	
-	public TextOtpController(Configuration config, Model model) {
-		this.model = model;
+	public TextOtpController(Configuration config, Tokenstore tokenstore) {
+		this.tokenstore = tokenstore;
 		this.config = config;
 		log = LoggerFactory.getLogger(TextOtpController.class);
 		sender = new EmailSender(config, "Authentication Token");
 	}
 	
 	@Override
-	public String execute(HttpServletRequest request) {
-		StringBuilder sb = new StringBuilder();
+	public Response execute(Map<String, String> params) {
+		log.debug("Text OTP request received.");
 		
 		// Phone number to send generated token to.  Must not be null.
-		String phone = request.getParameter("number");
-				
-		// Validate input
-		if (phone == null
-				|| !phone.matches("^(\\d{3})-?(\\d{3})-?(\\d{4})$")) {
-			sb.append("{\"error\":\"No valid phone number specified.\"}");
-		} else {
-			// Phone number was valid
-			// Generate token
-			TokenGenerator tg = TokenGenerator.getInstance();
-			String token = tg.getToken(config.getOtpMinLength(), config.getOtpMaxLength());
-			
-			// Add token to model
-			model.putToken(phone, token, config.getTokenLifetime());
-			
-			// Send token
-			try {
-				if (config.isOptimisticResponse()) {
-					// Optimistic response - don't wait for send operation to complete
-					// Create a temporary thread for sending the token
-					final String tmpToken = token;
-					final String tmpPhone = phone;
-					Thread t = new Thread() {
-						@Override
-						public void run() {
-							try {
-								log.debug("Attempting to send token, '"
-										+ tmpToken
-										+ "' optimistically to phone number: "
-										+ tmpPhone);
-								sendToken(tmpToken, tmpPhone);
-								log.info("Sent token to phone, '"
-										+ tmpPhone
-										+ "' successfully.");
-							} catch (SenderException e) {
-								log.error("Failed to send token to '"
-										+ tmpPhone
-										+ "'.  Exception was: "
-										+ e.getMessage());
-							}
-						}
-					};
-					t.start();
-				} else {
-					// Non-optimistic response - wait for send operation to complete
-					log.debug("Attempting to send token, '"
-							+ token
-							+ "' non-optimistically to phone number: "
-							+ phone);
-					sendToken(token, phone);
-					log.info("Sent token to phone, '" + phone + "' successfully.");
-				}
-				
-				sb.append("{\"error:\": \"\"}");
-			} catch (SenderException e) {
-				log.error("Failed to send token to '"
-						+ phone
-						+ "'.  Exception was: "
-						+ e.getMessage());
-				sb.append("{\"error\": \"Could not send token.\"}");
-			}
+		String phone = params.get("number");
+		
+		// Client client information
+		String clientName = params.get("client");
+		String clientPassword = params.get("clientpassword");
+		
+		// Validate client
+		Client client = config.getClients().get(clientName);
+		if (client == null) {
+			log.debug("Invalid client name: " + clientName);
+			return new JsonResponse("GROUP", "Invalid client name or password.");
+		}
+		String pwd = client.getPassword();
+		if (pwd != null && !pwd.equals(clientPassword)) {
+			log.debug("Invalid client password: " + pwd);
+			return new JsonResponse("GROUP", "Invalid client name or password.");
 		}
 		
-		return sb.toString();
+		// Validate phone number
+		if (phone == null || !phone.matches("^(\\d{3})-?(\\d{3})-?(\\d{4})$")) {
+			log.debug("Invalid phone number: " + phone);
+			return new JsonResponse("NO_PHONE", "No valid phone number specified.");
+		}
+		
+		// Phone number was valid
+		// Generate token
+		TokenGenerator tg = TokenGenerator.getInstance();
+		String token = tg.getToken(client.getMinOtpLength(), client.getMaxOtpLength());
+		
+		// Add token to model
+		try {
+			tokenstore.putToken(clientName, phone, token);
+		} catch (TokenstoreException e) {
+			log.error("Failed to add '" + token + "' to tokenstore.");
+			return new JsonResponse("SERV", "Server error.");
+		}
+		
+		// Send token
+		try {
+			if (!config.isBlockingSmtp()) {
+				// Non-blocking SMTP - don't wait for send operation to complete
+				// Create a temporary thread for sending the token
+				final String tmpToken = token;
+				final String tmpPhone = phone;
+				Thread t = new Thread() {
+					@Override
+					public void run() {
+						try {
+							log.debug("Attempting to send (non-blocking) token, '"
+									+ tmpToken
+									+ "' to phone number: "
+									+ tmpPhone);
+							sendToken(tmpToken, tmpPhone);
+							log.info("Sent token to phone, '"
+									+ tmpPhone
+									+ "' successfully.");
+						} catch (SenderException e) {
+							log.error("Failed to send token to '"
+									+ tmpPhone
+									+ "'.  Exception was: "
+									+ e.getMessage());
+						}
+					}
+				};
+				t.start();
+			} else {
+				// Blocking SMTP - wait for send operation to complete
+				log.debug("Attempting to send (smtp blocking) token, '"
+						+ token
+						+ "' to phone number: "
+						+ phone);
+				sendToken(token, phone);
+				log.info("Sent token to phone, '" + phone + "' successfully.");
+			}
+			
+			return new JsonResponse();
+		} catch (SenderException e) {
+			log.error("Failed to send token to '"
+					+ phone
+					+ "'.  Exception was: "
+					+ e.getMessage());
+			return new JsonResponse("SEND", "Could not send token.");
+		}
 	}
 	
 	private void sendToken(String token, String number) throws SenderException {
@@ -114,11 +136,12 @@ public class TextOtpController implements Controller {
 		Set<String> hosts = config.getMobileProviderHosts();
 		Set<String> recipients = new HashSet<String>();
 		for (String host : hosts) {
+			log.debug("Adding '" + number + "@" + host + "' to send list.");
 			recipients.add(number + "@" + host);
 		}
 
 		// Send
-		sender.send(recipients, "Token: " + token);
+		sender.send(recipients, token);
 	}
 	
 	public void setSender(Sender sender) {

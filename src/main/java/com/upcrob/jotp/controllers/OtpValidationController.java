@@ -1,12 +1,17 @@
 package com.upcrob.jotp.controllers;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.upcrob.jotp.Client;
+import com.upcrob.jotp.Configuration;
 import com.upcrob.jotp.Controller;
-import com.upcrob.jotp.Model;
+import com.upcrob.jotp.JsonResponse;
+import com.upcrob.jotp.Response;
+import com.upcrob.jotp.Tokenstore;
+import com.upcrob.jotp.TokenstoreException;
 
 /**
  * Describes a controller that checks to see whether or not an
@@ -26,44 +31,62 @@ import com.upcrob.jotp.Model;
  */
 public class OtpValidationController implements Controller {
 
-	private Model model;
-	
+	private Tokenstore tokenstore;
+	private Configuration config;
 	private Logger log;
 	
-	public OtpValidationController(Model model) {
-		this.model = model;
+	public OtpValidationController(Configuration config, Tokenstore tokenstore) {
+		this.config = config;
+		this.tokenstore = tokenstore;
 		log = LoggerFactory.getLogger(OtpValidationController.class);
 	}
 	
 	@Override
-	public String execute(HttpServletRequest request) {
-		StringBuilder sb = new StringBuilder();
-		
+	public Response execute(Map<String, String> params) {
 		// Get input from request
-		String uid = request.getParameter("uid");
-		String tokenString = request.getParameter("token");
+		String uid = params.get("uid");
+		String tokenString = params.get("token");
+		String clientName = params.get("client");
+		String clientPassword = params.get("clientpassword");
+		Client client = config.getClients().get(clientName);
 		
-		if (uid == null) {
-			sb.append("{\"error\": \"No user identifier (uid) specified.\"}");
-		} else if (tokenString == null) {
-			sb.append("{\"error\": \"No token specified.\"}");
-		} else {
-			if (model.isTokenValid(uid, tokenString)) {
-				// Token was valid, invalidate it and return response
-				model.removeToken(uid);
-				sb.append("{\"error\": \"\", \"tokenValid\": \"true\"}");
-				log.info("Token for UID, '" + uid + "' was validated successfully.");
-			} else {
-				// Token wasn't valid
-				sb.append("{\"error\": \"\", \"tokenValid\": \"false\"}");
-				log.info("Token for UID, '"
-						+ uid
-						+ "' was not valid.  Token attempted was: "
-						+ tokenString);
-			}
+		// Check client
+		if (clientName == null || client == null) {
+			return new JsonResponse("GROUP", "Invalid client name or password.");
+		}
+		String pwd = client.getPassword();
+		if (pwd != null && !pwd.equals(clientPassword)) {
+			return new JsonResponse("GROUP", "Invalid client name or password.");
 		}
 		
-		return sb.toString();
+		// Check uid and token parameters
+		if (uid == null) {
+			return new JsonResponse("NO_UID", "No user identifier (uid) specified.");
+		} else if (tokenString == null) {
+			return new JsonResponse("NO_TOKEN", "No token specified.");
+		} else {
+			try {
+				if (tokenstore.isTokenValid(clientName, uid, tokenString)) {
+					// Token was valid
+					JsonResponse resp = new JsonResponse();
+					resp.setField("tokenValid", "true");
+					log.info("Token for UID, '" + uid + "' was validated successfully.");
+					return resp;
+				} else {
+					// Token wasn't valid
+					JsonResponse resp = new JsonResponse();
+					resp.setField("tokenValid", "false");
+					log.info("Token for UID, '"
+							+ uid
+							+ "' was not valid.  Token attempted was: "
+							+ tokenString);
+					return resp;
+				}
+			} catch (TokenstoreException e) {
+				log.error("Failed to validate token with tokenstore.");
+				return new JsonResponse("SERV", "Server error.");
+			}
+		}
 	}
 
 }

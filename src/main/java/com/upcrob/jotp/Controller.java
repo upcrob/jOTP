@@ -1,7 +1,7 @@
 package com.upcrob.jotp;
 
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 /**
  * Describes a controller that can be called from
@@ -10,8 +10,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface Controller {
 	/**
-	 * Executes the controller action with the given request object and
-	 * returns a response String.
+	 * Executes the controller action with the given parameters.
 	 */
-	public String execute(HttpServletRequest request);
+	public Response execute(Map<String, String> parameters);
 }

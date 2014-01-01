@@ -1,13 +1,17 @@
 package com.upcrob.jotp.test;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import com.upcrob.jotp.Client;
 import com.upcrob.jotp.Configuration;
-import com.upcrob.jotp.Model;
+import com.upcrob.jotp.Response;
 import com.upcrob.jotp.Sender;
 import com.upcrob.jotp.SenderException;
+import com.upcrob.jotp.Tokenstore;
 import com.upcrob.jotp.controllers.EmailOtpController;
 
 import static org.junit.Assert.*;
@@ -17,57 +21,122 @@ import static org.mockito.Mockito.*;
  * Tests for the EmailOtpController.
  */
 public class EmailOtpControllerTests {
+	
+	private Map<String, Client> dummyGroups;
+	
+	@Before
+	public void setup() {
+		dummyGroups = new HashMap<String, Client>();
+		Client a = new Client();
+		Client b = new Client();
+		b.setPassword("bpass");
+		dummyGroups.put("a", a);
+		dummyGroups.put("b", b);
+	}
+	
 	@Test
-	public void testNoAddress() {
-		HttpServletRequest req = mock(HttpServletRequest.class);
-		when(req.getParameter("address")).thenReturn(null);
+	public void testNoGroup() {
+		Map<String, String> params = new HashMap<String, String>();
 		
 		Configuration config = mock(Configuration.class);
-		when(config.isOptimisticResponse()).thenReturn(false);
-		Model model = mock(Model.class);
-		EmailOtpController eoc = new EmailOtpController(config, model);
+		when(config.getClients()).thenReturn(dummyGroups);
+		when(config.isBlockingSmtp()).thenReturn(true);
+		Tokenstore tokenstore = mock(Tokenstore.class);
+		EmailOtpController eoc = new EmailOtpController(config, tokenstore);
 		eoc.setSender(mock(Sender.class));
-		String ret = eoc.execute(req);
-		assertEquals(ret, "{\"error\": \"No valid email specified.\"}");
+		Response ret = eoc.execute(params);
+		assertEquals(ret.getError(), "GROUP");
+	}
+	
+	@Test
+	public void testNoGroupPassword() {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("client", "b");
+		
+		Configuration config = mock(Configuration.class);
+		when(config.getClients()).thenReturn(dummyGroups);
+		when(config.isBlockingSmtp()).thenReturn(true);
+		Tokenstore tokenstore = mock(Tokenstore.class);
+		EmailOtpController eoc = new EmailOtpController(config, tokenstore);
+		eoc.setSender(mock(Sender.class));
+		Response ret = eoc.execute(params);
+		assertEquals(ret.getError(), "GROUP");
+	}
+	
+	@Test
+	public void testWrongGroupPassword() {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("client", "b");
+		params.put("clientpassword", "wrong");
+		
+		Configuration config = mock(Configuration.class);
+		when(config.getClients()).thenReturn(dummyGroups);
+		when(config.isBlockingSmtp()).thenReturn(true);
+		Tokenstore tokenstore = mock(Tokenstore.class);
+		EmailOtpController eoc = new EmailOtpController(config, tokenstore);
+		eoc.setSender(mock(Sender.class));
+		Response ret = eoc.execute(params);
+		assertEquals(ret.getError(), "GROUP");
+	}
+	
+	@Test
+	public void testNoAddress() {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("client", "a");
+		
+		Configuration config = mock(Configuration.class);
+		when(config.getClients()).thenReturn(dummyGroups);
+		when(config.isBlockingSmtp()).thenReturn(true);
+		Tokenstore tokenstore = mock(Tokenstore.class);
+		EmailOtpController eoc = new EmailOtpController(config, tokenstore);
+		eoc.setSender(mock(Sender.class));
+		Response ret = eoc.execute(params);
+		assertEquals(ret.getError(), "ADDR");
 	}
 	
 	@Test
 	public void testInvalidAddress() {
-		HttpServletRequest req = mock(HttpServletRequest.class);
-		when(req.getParameter("address")).thenReturn("notvalidaddr");
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("client", "a");
+		params.put("address", "notvalidaddr");
 		
 		Configuration config = mock(Configuration.class);
-		when(config.isOptimisticResponse()).thenReturn(false);
-		Model model = mock(Model.class);
-		EmailOtpController eoc = new EmailOtpController(config, model);
+		when(config.getClients()).thenReturn(dummyGroups);
+		when(config.isBlockingSmtp()).thenReturn(true);
+		Tokenstore tokenstore = mock(Tokenstore.class);
+		EmailOtpController eoc = new EmailOtpController(config, tokenstore);
 		eoc.setSender(mock(Sender.class));
-		String ret = eoc.execute(req);
-		assertEquals(ret, "{\"error\": \"No valid email specified.\"}");
+		Response ret = eoc.execute(params);
+		assertEquals(ret.getError(), "ADDR");
 	}
 	
 	@Test
 	public void testValidAddress() {
-		HttpServletRequest req = mock(HttpServletRequest.class);
-		when(req.getParameter("address")).thenReturn("test-test.test_test@example.com");
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("client", "a");
+		params.put("address", "test-test.test_test@example.com");
 		
 		Configuration config = mock(Configuration.class);
-		when(config.isOptimisticResponse()).thenReturn(false);
-		Model model = mock(Model.class);
-		EmailOtpController eoc = new EmailOtpController(config, model);
+		when(config.getClients()).thenReturn(dummyGroups);
+		when(config.isBlockingSmtp()).thenReturn(true);
+		Tokenstore tokenstore = mock(Tokenstore.class);
+		EmailOtpController eoc = new EmailOtpController(config, tokenstore);
 		eoc.setSender(mock(Sender.class));
-		String ret = eoc.execute(req);
-		assertEquals(ret, "{\"error:\": \"\"}");
+		Response ret = eoc.execute(params);
+		assertEquals(ret.getError(), "");
 	}
 	
 	@Test
 	public void testSendException() {
-		HttpServletRequest req = mock(HttpServletRequest.class);
-		when(req.getParameter("address")).thenReturn("test@example.com");
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("client", "a");
+		params.put("address", "test@example.com");
 		
 		Configuration config = mock(Configuration.class);
-		when(config.isOptimisticResponse()).thenReturn(false);
-		Model model = mock(Model.class);
-		EmailOtpController eoc = new EmailOtpController(config, model);
+		when(config.getClients()).thenReturn(dummyGroups);
+		when(config.isBlockingSmtp()).thenReturn(true);
+		Tokenstore tokenstore = mock(Tokenstore.class);
+		EmailOtpController eoc = new EmailOtpController(config, tokenstore);
 		Sender s = mock(Sender.class);
 		eoc.setSender(s);
 		
@@ -77,7 +146,7 @@ public class EmailOtpControllerTests {
 			// do nothing
 		}
 		
-		String ret = eoc.execute(req);
-		assertEquals(ret, "{\"error\": \"Could not send token.\"}");
+		Response ret = eoc.execute(params);
+		assertEquals(ret.getError(), "SEND");
 	}
 }

@@ -13,11 +13,11 @@ public class Reaper extends Thread {
 	// Time interval (in millis) between cleaning cycles
 	private static final int CLEANING_INTERVAL = 60000;
 	
-	// Reference to the model object
-	private Model model;
+	// Reference to the Tokenstore object
+	private Tokenstore tokenstore;
 	
-	public Reaper(Model model) {
-		this.model = model;
+	public Reaper(Tokenstore tokenstore) {
+		this.tokenstore = tokenstore;
 		setDaemon(true);
 	}
 	
@@ -28,8 +28,12 @@ public class Reaper extends Thread {
 		while (true) {
 			// Clean the model
 			log.debug("Starting reaper cleaning cycle.");
-			model.removeExpired();
-			log.debug("Reaper cycle complete.");
+			try {
+				tokenstore.removeExpired();
+				log.info("Reaper cycle complete.");
+			} catch (TokenstoreException e) {
+				log.error("Could not complete reaper cleaning cycle.");
+			}
 			
 			// Sleep the thread
 			try {
