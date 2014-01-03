@@ -40,7 +40,7 @@ is returned if this is the case.
 ### Text Function
 
 **Description:** The text function generates a one-time password token and attempts to send it to the requested phone
-number (cellular providers must be configured in `config.properties`).
+number (cellular providers must be configured in `config.yaml`).
 
 **HTTP Verb:** POST
 
