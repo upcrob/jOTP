@@ -12,8 +12,7 @@ briefly demonstrates the public API:
 
 ### Monitor Function
 
-**Description:** The monitor function simply lets the caller know whether or not the application is available.  The string, 'OK'
-is returned if this is the case.
+**Description:** The monitor function simply lets the caller know whether or not the application is available.
 
 **HTTP Verb:** GET
 
@@ -56,8 +55,7 @@ number (cellular providers must be configured in `config.yaml`).
 
 ### Validate Function
 
-**Description:** The validate function determines whether or not a user/token pair are valid.  If the pair is valid,
-the 'tokenValid' property of the JSON response will be set to 'true', and the token will be automatically invalidated.
+**Description:** The validate function determines whether or not a token is valid.  If  valid, the 'tokenValid' property of the JSON response will be set to 'true', and the token will be automatically invalidated.
 
 **HTTP Verb:** POST
 
