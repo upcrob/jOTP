@@ -10,10 +10,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Tokenstore that holds one-time use passwords in
- * a JDBC datasource.  This will be slower than a
- * LocalTokenstore, but allows for failover and
- * jOTP instance replication.  This class assumes
- * that the JDBC driver has already been loaded
+ * a JDBC datasource.  This class assumes that
+ * the JDBC driver has already been loaded
  * onto the classpath and is available using the
  * DriverManager.
  */

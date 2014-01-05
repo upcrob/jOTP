@@ -11,6 +11,9 @@ import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisDataException;
 
+/**
+ * Tokenstore that holds one-time passwords in a Redis server. 
+ */
 public class RedisTokenstore implements Tokenstore {
 
 	private Logger log;
@@ -142,15 +145,19 @@ public class RedisTokenstore implements Tokenstore {
 			try {
 				String resp = jedis.ping();
 				if ("PONG".equals(resp)) {
+					// 'PONG' response received from server, we can connect without authentication
 					authenticated = true;
 					return true;
 				} else {
+					// Unknown response received
 					return false;
 				}
 			} catch (JedisConnectionException e) {
+				// Error connecting to the server
 				log.error("Error connecting to Redis.  Exception message was: " + e.getMessage());
 				return false;
 			} catch (JedisDataException e) {
+				// Server requires a password
 				if (e.getMessage().contains("NOAUTH"))
 					log.error("Redis server requires a password.");
 				else
@@ -164,13 +171,16 @@ public class RedisTokenstore implements Tokenstore {
 		try {
 			String resp = jedis.auth(password);
 			if ("OK".equals(resp)) {
+				// Authentication succeeded
 				log.debug("Authentication successful.");
 				authenticated = true;
 				return true;
 			}
 		} catch (JedisConnectionException e) {
+			// Error connecting to server
 			log.error("Error connecting to Redis.  Exception message was: " + e.getMessage());
 		} catch (JedisDataException e) {
+			// Authentication failed
 			if (e.getMessage().contains("NOAUTH"))
 				log.error("Error authenticating to Redis server.");
 			else
