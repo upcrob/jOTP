@@ -80,11 +80,23 @@ this directory.
 
 ### Example `config.yaml`
 
-	# SMTP settings.  This should be configured to use a (largely)
-	# unmonitored email inbox.
+	# SMTP settings for the email account used to send tokens.
+	# The SmtpHost, SmtpPort, and SmtpFrom properties are always
+	#   required.
+	# SmtpTls defines whether TLS should be used.  If not specified,
+	#   this will default to 'true'.
+	# SmtpAuthType defines the authentication method for the
+	#   account.  If not specified, the system assumes no
+	#   authentication is required.  Otherwise, this must be
+	#   set to 'password' (currently the only supported option)
+	#   and the SmtpUsername and SmtpPassword properties must
+	#   be defined.
 	SmtpHost: smtp.myhost.com
 	SmtpPort: 587
-	SmtpUsername: example_smtp_user
+	SmtpFrom: test@example.com
+	SmtpTls: true
+	SmtpAuthType: password
+	SmtpUsername: test@example.com
 	SmtpPassword: example_smtp_password
 
 	# This optional property defines whether or not SMTP operations

@@ -49,20 +49,35 @@ public class EmailSender implements Sender {
 		}
 		
 		Properties props = new Properties();
-		props.put("mail.smtp.auth", "true");
-		props.put("mail.smtp.starttls.enable", "true");
+		// Set host and port
 		props.put("mail.smtp.host", config.getSmtpHost());
 		props.put("mail.smtp.port", config.getSmtpPort());
-		Session sess = Session.getInstance(props,
-			new javax.mail.Authenticator() {
-				protected PasswordAuthentication getPasswordAuthentication() {
-					return new PasswordAuthentication(config.getSmtpUsername(), config.getSmtpPassword());
-				}
-		});
 		
+		// Determine if TLS should be enabled
+		if (config.isSmtpTls())
+			props.put("mail.smtp.starttls.enable", "true");
+		
+		// Determine if authentication is required
+		Session sess;
+		if (config.getSmtpAuthType() == AuthType.PASSWORD) {
+			// Use username / password authentication
+			props.put("mail.smtp.auth", "true");
+			sess = Session.getInstance(props,
+				new javax.mail.Authenticator() {
+					protected PasswordAuthentication getPasswordAuthentication() {
+						return new PasswordAuthentication(config.getSmtpUsername(), 
+								config.getSmtpPassword());
+					}
+			});
+		} else {
+			// Get default instance, no authentication
+			sess = Session.getDefaultInstance(props);
+		}
+		
+		// Send message
 		Message msg = new MimeMessage(sess);
 		try {
-			msg.setFrom(new InternetAddress(config.getSmtpUsername()));
+			msg.setFrom(new InternetAddress(config.getSmtpFrom()));
 			msg.setRecipients(Message.RecipientType.TO, addresses);
 			msg.setSubject(subject);
 			msg.setText(message);

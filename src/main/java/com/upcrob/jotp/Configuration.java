@@ -20,6 +20,25 @@ public interface Configuration {
 	public int getSmtpPort();
 	
 	/**
+	 * Get address that FROM field should
+	 * be set to when sending token emails.
+	 */
+	public String getSmtpFrom();
+	
+	/**
+	 * Returns whether SMTP is using transport
+	 * layer security.
+	 */
+	public boolean isSmtpTls();
+	
+	/**
+	 * Get type of authentication used for
+	 * SMTP.  Returns null if authentication
+	 * is not required.
+	 */
+	public AuthType getSmtpAuthType();
+	
+	/**
 	 * Get the username of the email account
 	 * being used to send OTP tokens.
 	 */

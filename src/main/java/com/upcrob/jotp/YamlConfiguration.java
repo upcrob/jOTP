@@ -23,6 +23,9 @@ public class YamlConfiguration implements Configuration {
 	private Logger log;
 	private String smtpHost;
 	private int smtpPort;
+	private String smtpFrom;
+	private AuthType smtpAuthType;
+	private boolean smtpTls;
 	private String smtpUsername;
 	private String smtpPassword;
 	private Set<String> mobileProviderHosts;
@@ -48,6 +51,7 @@ public class YamlConfiguration implements Configuration {
 		log = LoggerFactory.getLogger(YamlConfiguration.class);
 		
 		// Set default values for optional parameters
+		smtpTls = true;
 		blockingSmtp = false;
 		jdbcString = null;
 		redisPort = -1;
@@ -82,19 +86,55 @@ public class YamlConfiguration implements Configuration {
 		smtpPort = Integer.parseInt(o.toString());
 		log.debug("SMTP port: " + smtpPort);
 		
-		// Load SmtpUsername
-		o = map.get("SmtpUsername");
+		// Load SmtpFrom
+		o = map.get("SmtpFrom");
 		if (o == null)
-			throw new ConfigurationException("No SmtpUsername specified in configuration.");
-		smtpUsername = o.toString();
-		log.debug("SMTP username: " + smtpUsername);
+			throw new ConfigurationException("No SmtpFrom specified in configuration.");
+		smtpFrom = o.toString();
+		log.debug("SMTP from: " + smtpFrom);
 		
-		// Load SmtpPassword
-		o = map.get("SmtpPassword");
-		if (o == null)
-			throw new ConfigurationException("No SmtpPassword specified in configuration.");
-		smtpPassword = o.toString();
-		log.debug("SMTP password: " + smtpPassword);
+		// Load SmtpTls
+		o = map.get("SmtpTls");
+		if (o != null) {
+			if ("true".equalsIgnoreCase(o.toString()))
+				smtpTls = true;
+			else if ("false".equalsIgnoreCase(o.toString()))
+				smtpTls = false;
+			else
+				throw new ConfigurationException("SmtpTls must be set to either 'true' or 'false'.");
+		}
+		log.debug("SMTP using TLS: " + smtpTls);
+		
+		// Load SmtpAuthType
+		o = map.get("SmtpAuthType");
+		if (o != null) {
+			if ("password".equalsIgnoreCase(o.toString())) {
+				log.debug("SMTP set to use username/password authentication");
+				
+				// Password authentication
+				smtpAuthType = AuthType.PASSWORD;
+				
+				// Load SmtpUsername
+				o = map.get("SmtpUsername");
+				if (o == null)
+					throw new ConfigurationException("No SmtpUsername specified in configuration.");
+				smtpUsername = o.toString();
+				log.debug("SMTP username: " + smtpUsername);
+				
+				// Load SmtpPassword
+				o = map.get("SmtpPassword");
+				if (o == null)
+					throw new ConfigurationException("No SmtpPassword specified in configuration.");
+				smtpPassword = o.toString();
+				log.debug("SMTP password: " + smtpPassword);	
+			} else {
+				// Invalid SmtpAuthType
+				throw new ConfigurationException("Invalid SmtpAuthType specified in configuration.");
+			}
+		} else {
+			// No SMTP authentication
+			log.debug("SMTP set to not use authentication.");
+		}
 		
 		// Load BlockingSmtp
 		o = map.get("BlockingSmtp");
@@ -292,5 +332,20 @@ public class YamlConfiguration implements Configuration {
 	@Override
 	public String getRedisPassword() {
 		return redisPassword;
+	}
+
+	@Override
+	public boolean isSmtpTls() {
+		return smtpTls;
+	}
+
+	@Override
+	public AuthType getSmtpAuthType() {
+		return smtpAuthType;
+	}
+
+	@Override
+	public String getSmtpFrom() {
+		return smtpFrom;
 	}
 }
