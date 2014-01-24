@@ -2,8 +2,14 @@
 
 [![Build Status](https://travis-ci.org/upcrob/jOTP.png)](https://travis-ci.org/upcrob/jOTP)
 
-jOTP is a lightweight web application for generating and validating one-time passwords as a secondary factor of authentication.
-Passwords may be received via email or text message.
+jOTP is a lightweight web application, implemented as a set of RESTful services, for generating and validating one-time passwords as a secondary factor of authentication.  Passwords may be received via email or text message.
+
+A common use case for jOTP is as follows:
+
+1. Client application displays a login page requesting that the end user enter his/her phone number.
+2. Client application requests that jOTP send a one-time password token to the phone number.  A login page is then displayed asking for the user's username, password, and one-time use token.
+3. User receives one-time use token from jOTP and enters the token, along with his/her username and password.
+4. The client application contacts jOTP to verify the token's validity.  If the token is valid (and the username/password combination is correct), the user is authenticated.
 
 ## Usage
 
@@ -16,7 +22,7 @@ briefly demonstrates the public API:
 
 **HTTP Verb:** GET
 
-**URL:** (CONTEXT ROOT)/sys/monitor
+**URL:** `(CONTEXT ROOT)/sys/monitor`
 
 **Parameters:** None
 
@@ -26,7 +32,7 @@ briefly demonstrates the public API:
 
 **HTTP Verb:** POST
 
-**URL:** (CONTEXT ROOT)/otp/email
+**URL:** `(CONTEXT ROOT)/otp/email`
 
 **Parameters:**
 
@@ -43,7 +49,7 @@ number (cellular providers must be configured in `config.yaml`).
 
 **HTTP Verb:** POST
 
-**URL:** (CONTEXT ROOT)/otp/text
+**URL:** `(CONTEXT ROOT)/otp/text`
 
 **Parameters:**
 
@@ -59,7 +65,7 @@ number (cellular providers must be configured in `config.yaml`).
 
 **HTTP Verb:** POST
 
-**URL:** (CONTEXT ROOT)/otp/validate
+**URL:** `(CONTEXT ROOT)/otp/validate`
 
 **Parameters:**
 
