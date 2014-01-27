@@ -2,6 +2,8 @@ package com.upcrob.jotp;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,7 @@ public class RedisTokenstore implements Tokenstore {
 	private Map<String, Client> clients;
 	private boolean authenticated;
 	private String password;
+	private static Pattern intPattern = Pattern.compile("^[0-9]+$");
 	
 	public RedisTokenstore(Configuration config) {
 		log = LoggerFactory.getLogger(RedisTokenstore.class);
@@ -59,7 +62,8 @@ public class RedisTokenstore implements Tokenstore {
 		// Setup and execute transaction
 		try {
 			Transaction t = jedis.multi();
-			String key = client + uid + token;
+			String key = client + ":" + uid;
+			t.hset(key, "token", token);
 			t.hset(key, "expiration", String.valueOf(expires));
 			t.exec();
 			log.debug("Token, '" + token + "' added.");
@@ -80,9 +84,12 @@ public class RedisTokenstore implements Tokenstore {
 				throw new TokenstoreException("Authentication failed.");
 		
 		try {
-			String key = client + uid + token;
+			String key = client + ":" + uid;
+			String tokenString = jedis.hget(key, "token");
 			String expireString = jedis.hget(key, "expiration");
-			if (expireString == null) {
+			if (tokenString == null
+					|| expireString == null
+					|| !token.equals(tokenString)) {
 				log.debug("Token, '" + token + "' does not exist in tokenstore.");
 				return false;	// Token does not exist in Redis
 			}
@@ -119,7 +126,11 @@ public class RedisTokenstore implements Tokenstore {
 			for (String key : keys) {
 				String expString = jedis.hget(key, "expiration");
 				if (expString == null)
-					continue;
+					continue;	// expire string not found, continue
+				
+				Matcher matcher = intPattern.matcher(expString);
+				if (!matcher.find())
+					continue;	// expire string wasn't an int, continue
 				
 				long expires = Long.parseLong(expString);
 				if (expires < System.currentTimeMillis()) {
