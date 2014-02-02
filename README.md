@@ -6,9 +6,9 @@ jOTP is a lightweight web application, implemented as a set of RESTful services,
 
 A common use case for jOTP is as follows:
 
-1. Client application displays a login page requesting that the end user enter his/her phone number.
-2. Client application requests that jOTP send a one-time password token to the phone number.  A login page is then displayed asking for the user's username, password, and one-time use token.
-3. User receives one-time use token from jOTP and enters the token, along with his/her username and password.
+1. Client application displays a login page requesting that the end user enter his/her username and password, as well as an OTP token.  After entering the username, the user clicks a 'Generate Token' button next to the 'OTP Token' field.
+2. Client application requests that jOTP send a one-time password token to the phone number associated with the username.
+3. The user receives one-time use token from jOTP and enters the token in the 'OTP Token' field.
 4. The client application contacts jOTP to verify the token's validity.  If the token is valid (and the username/password combination is correct), the user is authenticated.
 
 ## Usage
