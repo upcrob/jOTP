@@ -27,6 +27,9 @@ import com.upcrob.jotp.controllers.TextOtpController;
 @WebServlet(urlPatterns={"/*"}, loadOnStartup=1)
 public class ControllerServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	private static final String CONFIG_PATH_PROPERTY = "com.upcrob.jotp.config.dir";
+	
     private Map<String, Controller> getControllers;
     private Map<String, Controller> postControllers;
     private Configuration config;
@@ -89,8 +92,20 @@ public class ControllerServlet extends HttpServlet {
 		Logger log = LoggerFactory.getLogger(ControllerServlet.class);
 		log.info("Initializing servlet...");
         
+		// Set config path
+		String configDir = System.getProperty(CONFIG_PATH_PROPERTY);
+		if (configDir == null) {
+			// Default to <USER HOME>/.jotp
+			configDir = System.getProperty("user.home") + "/.jotp";
+		} else {
+			// Remove '/' character if it was added to the directory path
+			if (configDir.endsWith("/")) {
+				configDir = configDir.substring(0, configDir.length() - 1);
+			}
+		}
+		
         // Load config
-        String configPath = System.getProperty("user.home") + "/.jotp/config.yaml";
+        String configPath = configDir + "/config.yaml";
         log.info("Attempting to load configuration from file: " + configPath);
         try {
 			config = new YamlConfiguration(configPath);
