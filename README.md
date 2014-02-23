@@ -80,9 +80,9 @@ token initially.
 
 ## Configuration
 
-jOTP configuration and log files are stored in a directory called, '.jotp' within the (application server) user's
-home directory.  When jOTP starts up, it will try to read in a YAML file called, 'config.yaml' stored within
-this directory.
+jOTP configuration and log files are stored in a directory called, '.jotp' within the (application server)
+user's home directory by default.  When jOTP starts up, it will try to read in a YAML file called, 'config.yaml' stored within this directory.  To store this information in a location other than
+'(USER HOME)/.jotp', set the new path in the `com.upcrob.jotp.config.dir` JVM property.
 
 ### Example `config.yaml`
 
