@@ -5,7 +5,7 @@
 apply plugin: 'eclipse-wtp'
 apply plugin: 'war'
 
-version = '0.3.0'
+version = '0.3.1'
 
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
@@ -18,7 +18,10 @@ dependencies {
 	testCompile 'org.mockito:mockito-all:1.9.5'
 
 	providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
-	compile 'com.sun.mail:javax.mail:1.5.1'
+	
+	compile 'javax.mail:javax.mail-api:1.5.1'
+	runtime 'com.sun.mail:javax.mail:1.5.1'
+	
 	compile 'ch.qos.logback:logback-core:1.0.13'
 	compile 'ch.qos.logback:logback-classic:1.0.13'
 	compile 'org.slf4j:slf4j-api:1.7.5'
