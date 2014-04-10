@@ -5,7 +5,7 @@
 apply plugin: 'eclipse-wtp'
 apply plugin: 'war'
 
-version = '0.3.1'
+version = '0.3.2'
 
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
