@@ -130,6 +130,11 @@ public class LocalTokenstore implements Tokenstore {
 		}
 	}
 	
+	@Override
+	public boolean requiresReaper() {
+		return true;
+	}
+	
 	/**
 	 * Describes a one-time password token that has been
 	 * generated and stored in memory.

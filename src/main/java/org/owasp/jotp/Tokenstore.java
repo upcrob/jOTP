@@ -38,4 +38,12 @@ public interface Tokenstore {
 	 *   underlying store.
 	 */
 	public void removeExpired() throws TokenstoreException;
+	
+	/**
+	 * Informs controller about whether a Reaper thread is needed.  If this method returns false,
+	 * the Reaper thread won't be started.  If the implementing tokenstore requires that removeExpired()
+	 * be called periodically, this method should return false.
+	 * @return Whether a Reaper should be created.
+	 */
+	public boolean requiresReaper();
 }

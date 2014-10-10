@@ -52,10 +52,12 @@ public class OtpValidationController implements Controller {
 		
 		// Check client
 		if (clientName == null || client == null) {
+			log.debug("Invalid client name: {}", client);
 			return new JsonResponse("GROUP", "Invalid client name or password.");
 		}
 		String pwd = client.getPassword();
 		if (pwd != null && !pwd.equals(clientPassword)) {
+			log.debug("Invalid client password: {}", pwd);
 			return new JsonResponse("GROUP", "Invalid client name or password.");
 		}
 		

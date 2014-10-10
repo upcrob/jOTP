@@ -155,4 +155,9 @@ public class JdbcTokenstore implements Tokenstore {
 		}
 		log.debug("Done removing expired tokens.");
 	}
+
+	@Override
+	public boolean requiresReaper() {
+		return true;
+	}
 }

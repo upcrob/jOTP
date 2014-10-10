@@ -126,7 +126,7 @@ public class YamlConfiguration implements Configuration {
 				if (o == null)
 					throw new ConfigurationException("No SmtpPassword specified in configuration.");
 				smtpPassword = o.toString();
-				log.debug("SMTP password: " + smtpPassword);	
+				log.debug("SMTP password set.");	
 			} else {
 				// Invalid SmtpAuthType
 				throw new ConfigurationException("Invalid SmtpAuthType specified in configuration.");
@@ -204,7 +204,7 @@ public class YamlConfiguration implements Configuration {
 			o = map.get("RedisPassword");
 			if (o != null) {
 				redisPassword = o.toString();
-				log.debug("Redis password: " + redisPassword);
+				log.debug("Redis password set.");
 			} else {
 				log.debug("No Redis password set.");
 			}
@@ -242,7 +242,7 @@ public class YamlConfiguration implements Configuration {
 			log.debug("Adding client: " + name);
 			if (password != null) {
 				g.setPassword(password.toString());
-				log.debug("Set client password to: " + password);
+				log.debug("Set client password.");
 			} else {
 				log.debug("No password set for client: " + name);
 			}

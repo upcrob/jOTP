@@ -146,8 +146,10 @@ public class ControllerServlet extends HttpServlet {
         postControllers.put("/otp/email", new EmailOtpController(config, tokenstore));
         postControllers.put("/otp/validate", new OtpValidationController(config, tokenstore));
         
-        // Start reaper thread
-        reaper = new Reaper(tokenstore);
-        reaper.start();
+        // Start reaper thread if required
+        if (tokenstore.requiresReaper()) {
+        	reaper = new Reaper(tokenstore);
+        	reaper.start();
+        }
 	}
 }

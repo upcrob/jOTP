@@ -1,15 +1,11 @@
 package org.owasp.jotp;
 
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisDataException;
 
@@ -23,7 +19,6 @@ public class RedisTokenstore implements Tokenstore {
 	private Map<String, Client> clients;
 	private boolean authenticated;
 	private String password;
-	private static Pattern intPattern = Pattern.compile("^[0-9]+$");
 	
 	public RedisTokenstore(Configuration config) {
 		log = LoggerFactory.getLogger(RedisTokenstore.class);
@@ -57,15 +52,10 @@ public class RedisTokenstore implements Tokenstore {
 		
 		// Compute token expiration time
 		Client c = clients.get(client);
-		long expires = System.currentTimeMillis() + (c.getTokenLifetime() * 1000);
 		
 		// Setup and execute transaction
 		try {
-			Transaction t = jedis.multi();
-			String key = client + ":" + uid;
-			t.hset(key, "token", token);
-			t.hset(key, "expiration", String.valueOf(expires));
-			t.exec();
+			jedis.setex(client + ":" + uid, c.getTokenLifetime(), token);
 			log.debug("Token, '" + token + "' added.");
 		} catch (JedisConnectionException e) {
 			log.error("Error connecting to Redis.  Exception message was: "
@@ -84,27 +74,17 @@ public class RedisTokenstore implements Tokenstore {
 				throw new TokenstoreException("Authentication failed.");
 		
 		try {
-			String key = client + ":" + uid;
-			String tokenString = jedis.hget(key, "token");
-			String expireString = jedis.hget(key, "expiration");
-			if (tokenString == null
-					|| expireString == null
-					|| !token.equals(tokenString)) {
-				log.debug("Token, '" + token + "' does not exist in tokenstore.");
-				return false;	// Token does not exist in Redis
-			}
-			
-			long expires = Long.parseLong(expireString);
-			if (expires > System.currentTimeMillis()) {
-				// Token was valid, remove it from Redis
-				log.debug("Token, '" + token + "' was valid.");
-				jedis.del(key);
-				return true;
-			} else {
-				// Token was not valid, remove it from Redis
-				log.debug("Token, '" + token + "' was in tokenstore but has expired.");
-				jedis.del(key);
+			String tokenString = jedis.get(client + ":" + uid);
+			if (tokenString == null) {
+				log.debug("Token, '{}' does not exist in tokenstore.", token);
 				return false;
+			} else if (!tokenString.equals(token)) {
+				log.debug("Found match for key, but token values did not match.");
+				return false;
+			} else {
+				log.debug("Token, '{}' was valid.", token);
+				jedis.del(client + ":" + uid);
+				return true;
 			}
 		} catch (JedisConnectionException e) {
 			log.error("Error connecting to Redis.  Exception message was: " + e.getMessage());
@@ -114,36 +94,7 @@ public class RedisTokenstore implements Tokenstore {
 
 	@Override
 	public void removeExpired() throws TokenstoreException {
-		log.debug("Removing expired tokens from Redis...");
-		
-		// Authenticate if we aren't already
-		if (!authenticated)
-			if (!authenticate())
-				throw new TokenstoreException("Authentication failed.");
-		
-		try {
-			Set<String> keys = jedis.keys("*");
-			for (String key : keys) {
-				String expString = jedis.hget(key, "expiration");
-				if (expString == null)
-					continue;	// expire string not found, continue
-				
-				Matcher matcher = intPattern.matcher(expString);
-				if (!matcher.find())
-					continue;	// expire string wasn't an int, continue
-				
-				long expires = Long.parseLong(expString);
-				if (expires < System.currentTimeMillis()) {
-					// Token has expired, remove it from Redis
-					log.debug("Removing expired key from Redis: " + key);
-					jedis.del(key);
-				}
-			}
-		} catch (JedisConnectionException e) {
-			log.error("Error connecting to Redis.  Exception message was: " + e.getMessage());
-			throw new TokenstoreException("Error connecting to Redis server.", e);
-		}
-		log.debug("Done removing expired tokens from Redis.");
+		throw new UnsupportedOperationException("Redis server handles token expiration.");
 	}
 
 	/**
@@ -197,6 +148,11 @@ public class RedisTokenstore implements Tokenstore {
 			else
 				log.error("Redis error: " + e.getMessage());
 		}
+		return false;
+	}
+
+	@Override
+	public boolean requiresReaper() {
 		return false;
 	}
 }
