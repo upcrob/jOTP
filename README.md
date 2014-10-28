@@ -1,8 +1,8 @@
-# jOTP
+# OWASP jOTP
 
 [![Build Status](https://travis-ci.org/upcrob/jOTP.png)](https://travis-ci.org/upcrob/jOTP)
 
-jOTP is a lightweight web application, implemented as a set of RESTful services, for generating and validating one-time passwords as a secondary factor of authentication.  Passwords may be received via email or text message.
+[OWASP jOTP](https://www.owasp.org/index.php/OWASP_JOTP_Project) is a lightweight web application, implemented as a set of RESTful services, for generating and validating one-time passwords as a secondary factor of authentication.  Passwords may be received via email or text message.
 
 A common use case for jOTP is as follows:
 
