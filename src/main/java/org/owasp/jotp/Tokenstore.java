@@ -8,7 +8,7 @@ public interface Tokenstore {
 	/**
 	 * Adds a token to the datastructure.
 	 * 
-	 * @param group Isolated client map under which to add the token.
+	 * @param client Isolated client map under which to add the token.
 	 * @param uid Unique identifier that is associated with the user
 	 *   for which this token is generated.
 	 * @param token Token string to store.
@@ -22,9 +22,9 @@ public interface Tokenstore {
 	 * Tokenstore and hasn't expired yet.  If it is valid, the method
 	 * will then return true and automatically expire the token.
 	 * 
-	 * @param group Client map.
+	 * @param client Client (application) ID.
 	 * @param uid User ID.
-	 * @param Token string.
+	 * @param token string.
 	 * @throws TokenstoreException Thrown if an error occurs in the
 	 *   underlying store.
 	 */

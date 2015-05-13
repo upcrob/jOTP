@@ -1,17 +1,19 @@
-/*
- * Gradle build script for jOTP.
- */
+plugins {
+	id 'eclipse-wtp'
+	id 'war'
+	id 'com.jfrog.bintray' version '1.0'
+	id 'maven-publish'
+}
 
-apply plugin: 'eclipse-wtp'
-apply plugin: 'war'
+group='org.owasp.jotp'
+version = '1.0.0'
 
-version = '0.4.0'
-
-sourceCompatibility = '1.6'
-targetCompatibility = '1.6'
+sourceCompatibility = '1.7'
 
 
-repositories { mavenCentral() }
+repositories {
+	jcenter()
+}
 
 dependencies {
 	testCompile 'junit:junit:4.8.2'
@@ -30,15 +32,40 @@ dependencies {
 	compile 'redis.clients:jedis:2.2.1'
 }
 
-eclipse {
-	wtp {
-		facet {
-			facet name: 'java', version: '1.6'
-			facet name: 'jst.web', version: '3.0'
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.web
 		}
 	}
 }
 
-war { classpath file('src/main/resources/logback.xml') }
+bintray {
+	user = project.properties['bintray.user']
+	key = project.properties['bintray.key']
 
-task wrapper(type: Wrapper) { gradleVersion = '1.8' }
+	publications = ['mavenJava']
+	dryRun = false
+	publish = true
+	pkg {
+		repo = 'maven'
+		name = 'owasp-jotp'
+		licenses = ['BSD 2-Clause']
+
+		version {
+			name = project.version
+			
+			mavenCentralSync {
+				sync = false
+			}
+		}
+	}
+}
+
+war {
+	classpath file('src/main/resources/logback.xml')
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.3'
+}
