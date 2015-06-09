@@ -59,6 +59,8 @@ number (cellular providers must be configured in `config.yaml`).
 
 *number* - Phone number to send the token to.
 
+**NOTE:** Because jOTP cannot lookup the carrier associated with a phone number, it will attempt to send the message to each carrier in the configuration.  Doing so will, therefore, result in an undeliverable message to most, if not all of the carrier endpoints.  While this will suffice for a small number of messages, this is not recommended for applications that operate at high scale.
+
 ### Validate Function
 
 **Description:** The validate function determines whether or not a token is valid.  If  valid, the 'tokenValid' property of the JSON response will be set to 'true', and the token will be automatically invalidated.
