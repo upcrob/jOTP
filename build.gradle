@@ -1,71 +1,30 @@
-plugins {
-	id 'eclipse-wtp'
-	id 'war'
-	id 'com.jfrog.bintray' version '1.0'
-	id 'maven-publish'
-}
+apply plugin: 'application'
+apply plugin: 'eclipse'
 
-group='org.owasp.jotp'
-version = '1.0.0'
-
-sourceCompatibility = '1.7'
-
+mainClassName = 'org.owasp.jotp.Main'
 
 repositories {
 	jcenter()
 }
 
-dependencies {
-	testCompile 'junit:junit:4.8.2'
-	testCompile 'org.mockito:mockito-all:1.9.5'
+run {
+	systemProperty "propertyfiles", System.getProperty("propertyfiles")
+}
 
-	providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
-	
-	compile 'javax.mail:javax.mail-api:1.5.1'
-	runtime 'com.sun.mail:javax.mail:1.5.1'
+dependencies {
+	compile 'com.sparkjava:spark-core:2.3'
+	compile 'com.google.code.gson:gson:2.6.1'
 	
 	compile 'ch.qos.logback:logback-core:1.0.13'
 	compile 'ch.qos.logback:logback-classic:1.0.13'
 	compile 'org.slf4j:slf4j-api:1.7.5'
-	compile 'com.google.code.gson:gson:2.2.4'
-	compile 'org.yaml:snakeyaml:1.13'
+	
+	compile 'javax.mail:javax.mail-api:1.5.1'
 	compile 'redis.clients:jedis:2.2.1'
-}
-
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from components.web
-		}
-	}
-}
-
-bintray {
-	user = project.properties['bintray.user']
-	key = project.properties['bintray.key']
-
-	publications = ['mavenJava']
-	dryRun = false
-	publish = true
-	pkg {
-		repo = 'maven'
-		name = 'owasp-jotp'
-		licenses = ['BSD 2-Clause']
-
-		version {
-			name = project.version
-			
-			mavenCentralSync {
-				sync = false
-			}
-		}
-	}
-}
-
-war {
-	classpath file('src/main/resources/logback.xml')
+	compile 'org.apache.derby:derby:10.12.1.1'
+	runtime 'com.sun.mail:javax.mail:1.5.1'
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '2.3'
+	gradleVersion = '2.11'
 }

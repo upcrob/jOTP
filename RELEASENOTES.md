@@ -1,5 +1,9 @@
 # jOTP Release Notes
 
+## v2.0.0
+
+* Simplified jOTP architecture and configuration.
+
 ## v1.0.0
 
 * Updated wrapper for Gradle 2.3.

@@ -1,8 +1,6 @@
 package org.owasp.jotp;
 
-import java.util.HashSet;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.mail.Address;
 import javax.mail.Message;
@@ -15,58 +13,57 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 /**
- * Send a message to the given email address.
+ * Sends a message to the given email address.
  */
-public class EmailSender implements Sender {
+public class EmailSender {
 
-	private Configuration config;
-	private String subject;
+	private final String host;
+	private final int port;
+	private final String fromAddr;
+	private final boolean useTls;
+	private final String username;
+	private final String password;
 	
-	public EmailSender(Configuration config, String subject) {
-		this.config = config;
-		this.subject = subject;
+	public EmailSender(String host, int port, String fromAddr, boolean useTls) {
+		this(host, port, fromAddr, useTls, null, null);
 	}
 	
-	@Override
-	public void send(String addr, String message) throws SenderException {
-		Set<String> recipients = new HashSet<String>();
-		recipients.add(addr);
-		send(recipients, message);
+	public EmailSender(String host, int port, String fromAddr, boolean useTls, String username, String password) {
+		this.host = host;
+		this.port = port;
+		this.useTls = useTls;
+		this.fromAddr = fromAddr;
+		this.username = username;
+		this.password = password;
 	}
 
-	@Override
-	public void send(Set<String> recipients, String message)
-			throws SenderException {
-		Address[] addresses = new Address[recipients.size()];
-		int i = 0;
-		for (String recipient : recipients) {
-			try {
-				addresses[i++] = new InternetAddress(recipient);
-			} catch (AddressException e) {
-				throw new SenderException("Invalid email address: "
-					+ recipient, e);
-			}
+	public void send(String emailAddr, String subject, String message) throws ServiceException {
+		Address[] addresses = new Address[1];
+		try {
+			addresses[0] = new InternetAddress(emailAddr);
+		} catch (AddressException e) {
+			throw new ServiceException("Invalid email address.", e);
 		}
 		
 		Properties props = new Properties();
 		// Set host and port
-		props.put("mail.smtp.host", config.getSmtpHost());
-		props.put("mail.smtp.port", config.getSmtpPort());
+		props.put("mail.smtp.host", host);
+		props.put("mail.smtp.port", port);
 		
 		// Determine if TLS should be enabled
-		if (config.isSmtpTls())
+		if (useTls) {
 			props.put("mail.smtp.starttls.enable", "true");
-		
+		}
+			
 		// Determine if authentication is required
 		Session sess;
-		if (config.getSmtpAuthType() == AuthType.PASSWORD) {
+		if (username != null && password != null) {
 			// Use username / password authentication
 			props.put("mail.smtp.auth", "true");
 			sess = Session.getInstance(props,
 				new javax.mail.Authenticator() {
 					protected PasswordAuthentication getPasswordAuthentication() {
-						return new PasswordAuthentication(config.getSmtpUsername(), 
-								config.getSmtpPassword());
+						return new PasswordAuthentication(username, password);
 					}
 			});
 		} else {
@@ -77,15 +74,13 @@ public class EmailSender implements Sender {
 		// Send message
 		Message msg = new MimeMessage(sess);
 		try {
-			msg.setFrom(new InternetAddress(config.getSmtpFrom()));
+			msg.setFrom(new InternetAddress(fromAddr));
 			msg.setRecipients(Message.RecipientType.TO, addresses);
 			msg.setSubject(subject);
 			msg.setText(message);
 			Transport.send(msg);
 		} catch (MessagingException e) {
-			throw new SenderException("An error occurred while sending the message: "
-				+ e.getMessage(), e);
+			throw new ServiceException("An error occurred while sending the message.", e);
 		}
 	}
-
 }

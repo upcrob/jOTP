@@ -1,13 +1,13 @@
 <configuration>
 	<appender name="FILEOUT"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${user.home}/.jotp/logs/activity.log</file>
+		<file>${logfile}</file>
 		<encoder>
 			<pattern>%d{HH:mm:ss.SSS} %-5level %logger{60} %msg%n</pattern>
 		</encoder>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- Hourly roll over -->
-			<fileNamePattern>${user.home}/.jotp/logs/activity-%d{yyyy-MM-dd_HH}.log
+			<fileNamePattern>${logfile}-%d{yyyy-MM-dd_HH}.log
 			</fileNamePattern>
 
 			<!-- Keep 7 days (168 hours) worth of history -->

@@ -2,192 +2,99 @@
 
 [![Build Status](https://travis-ci.org/upcrob/jOTP.png)](https://travis-ci.org/upcrob/jOTP)
 
-[OWASP jOTP](https://www.owasp.org/index.php/OWASP_JOTP_Project) is a lightweight web application, implemented as a set of RESTful services, for generating and validating one-time passwords as a secondary factor of authentication.  Passwords may be received via email or text message.
+[OWASP jOTP](https://www.owasp.org/index.php/OWASP_JOTP_Project) is a microservice for generating and validating one-time passwords as a secondary factor of authentication.
 
 A common use case for jOTP is as follows:
 
-1. Client application displays a login page requesting that the end user enter his/her username and password, as well as an OTP token.  After entering the username, the user clicks a 'Generate Token' button next to the 'OTP Token' field.
-2. Client application requests that jOTP send a one-time password token to the phone number associated with the username.
-3. The user receives one-time use token from jOTP and enters the token in the 'OTP Token' field.
-4. The client application contacts jOTP to verify the token's validity.  If the token is valid (and the username/password combination is correct), the user is authenticated.
+1. Client applications displays a login page requesting the user enter his/her username and password.
+2. If the credentials check passes, the user's email is looked up and a message containing the token is sent.
+3. The application then requests that the OTP token that was sent be entered in a text box.  Once entered, it is sent to jOTP.
+4. jOTP validates the token.  If the token was valid, the application finishes authenticating the user.  If the token was not valid, the user is redirected to the login page.
 
 ## Usage
 
-Applications can generate and validate one-time password tokens with jOTP via a small set of RESTful web services.  The following
-briefly demonstrates the public API:
-
 ### Monitor Function
 
-**Description:** The monitor function simply lets the caller know whether or not the application is available.
+**Description:** The monitor function simply lets the caller know whether or not the application is available.  It will return an HTTP 200 status and "OK" in the response body if jOTP is available.
 
 **HTTP Verb:** GET
 
-**URL:** `(CONTEXT ROOT)/sys/monitor`
+**URL:** `/`
 
 **Parameters:** None
 
-### Email Function
+### Generate OTP Token
 
-**Description:** The email function generates a one-time password token and sends it to the requested email address.
-
-**HTTP Verb:** POST
-
-**URL:** `(CONTEXT ROOT)/otp/email`
-
-**Parameters:**
-
-*client* - Name of client application.
-
-*clientpassword* - Password of client application.
-
-*address* - Email address to send the token to.
-
-### Text Function
-
-**Description:** The text function generates a one-time password token and attempts to send it to the requested phone
-number (cellular providers must be configured in `config.yaml`).
+**Description:** POSTing to the `/sessions` endpoint tells jOTP to generate an OTP token and send it to the user.  If successful, jOTP responds with a 201 and the session endpoint to validate against in the `Location` header.
 
 **HTTP Verb:** POST
 
-**URL:** `(CONTEXT ROOT)/otp/text`
+**URL:** `/sessions`
 
-**Parameters:**
+**Request Body Format:**
 
-*client* - Name of client application.
+	{
+		"email": "[email address to send token to]",
+		"subject": "[email subject]",
+		"message": "[email message]",
+		"ttl": "[number of minutes before token expires]"
+	}
 
-*clientpassword* - Password of client application.
+jOTP replaces `$token` in the message with the generated token and `$session` with the generated session.
 
-*number* - Phone number to send the token to.
+### Validate Token
 
-**NOTE:** Because jOTP cannot lookup the carrier associated with a phone number, it will attempt to send the message to each carrier in the configuration.  Doing so will, therefore, result in an undeliverable message to most, if not all of the carrier endpoints.  While this will suffice for a small number of messages, this is not recommended for applications that operate at high scale.
-
-### Validate Function
-
-**Description:** The validate function determines whether or not a token is valid.  If  valid, the 'tokenValid' property of the JSON response will be set to 'true', and the token will be automatically invalidated.
+**Description:** POSTing the OTP token to the matching session endpoint validates the token.  jOTP responds with a 200 HTTP status if the token is valid.
 
 **HTTP Verb:** POST
 
-**URL:** `(CONTEXT ROOT)/otp/validate`
+**URL:** `/sessions/[session id]`
 
-**Parameters:**
-
-*client* - Name of client application.
-
-*clientpassword* - Password of client application.
-
-*uid* - User ID.  This can be either an email address or phone number, depending upon which was used to generate the
-token initially.
-
-*token* - The string value of the token sent to the user.
+**Request Body:** [plaintext OTP token]
 
 ## Configuration
 
-jOTP configuration and log files are stored in a directory called, '.jotp' within the (application server)
-user's home directory by default.  When jOTP starts up, it will try to read in a YAML file called, 'config.yaml' stored within this directory.  To store this information in a location other than
-'(USER HOME)/.jotp', set the new path in the `org.owasp.jotp.config.dir` JVM property.
+The following 2 JVM properties should be set:
 
-### Example `config.yaml`
+* **propertyfiles** This should be a (comma-delimited) list of property files that jOTP should read when it starts up.
+* **logfile** This should be the absolute path of the file where jOTP logs should be written.  Log files will be rolled over hourly in the same directory.
 
-	# SMTP settings for the email account used to send tokens.
-	# The SmtpHost, SmtpPort, and SmtpFrom properties are always
-	#   required.
-	# SmtpTls defines whether TLS should be used.  If not specified,
-	#   this will default to 'true'.
-	# SmtpAuthType defines the authentication method for the
-	#   account.  If not specified, the system assumes no
-	#   authentication is required.  Otherwise, this must be
-	#   set to 'password' (currently the only supported option)
-	#   and the SmtpUsername and SmtpPassword properties must
-	#   be defined.
-	SmtpHost: smtp.myhost.com
-	SmtpPort: 587
-	SmtpFrom: test@example.com
-	SmtpTls: true
-	SmtpAuthType: password
-	SmtpUsername: test@example.com
-	SmtpPassword: example_smtp_password
+The following properties may be set in any of the property files specified in the `properyfiles` JVM property:
 
-	# This optional property defines whether or not SMTP operations
-	# should block HTTP responses.  If set to true, HTTP responses
-	# won't be sent until emails have been verified to have been
-	# sent successfully.  If set to false, SMTP operations take
-	# place in a separate thread are assumed to always be successful.
-	# If not set in the configuration, this property defaults to false.
-	BlockingSmtp: false
+**log.file** Path to log file.  Files will be rolled over with the date in the same directory.
 
-	# Instructs the system to use local memory to cache OTP tokens.
-	# This is the fastest option, but does not allow for multiple
-	# application instances for failover.  If this property is not
-	# set in the configuration, a local store is used by default.
-	TokenstoreType: local
+**http.port** HTTP port the web server should listen on.
 
-	# Instructs the system to use a JDBC datasource to cache OTP
-	# tokens using the provided JDBC connection string and driver
-	# (with the fully-qualified class name).  The driver JAR(s)
-	# will need to be added to the web server's classpath (eg.
-	# the 'lib' directory in Apache Tomcat).  Note that a table
-	# called, 'tokenstore' will need to be created within the
-	# database with the following columns:
-	#   client     VARCHAR(255)
-	#   uid        VARCHAR(255)
-	#   token      VARCHAR(255)
-	#   expiration BIGINT
-	#
-	# Note that the primary key should be set to (client, uid).
-	#
-	# TokenstoreType: jdbc
-	# JdbcString: jdbc:derby://localhost:1527/mydatabase
-	# JdbcDriver: org.apache.derby.jdbc.ClientDriver
+**base.url** The base URL for the service (e.g. localhost:8080).  This is used to construct the `Location` header.
 
-	# Instructs the system to use a Redis server to cache OTP
-	# tokens using the provided hostname, port, and password.
-	# If no port is set, the default Redis port will be used.
-	# If no password is set, the system will assume that no
-	# authentication is necessary.
-	#
-	# TokenstoreType: redis
-	# RedisHost: localhost
-	# RedisPort: 6379
-	# RedisPassword: myredispassword
-	
-	# This is the list of all cellular providers that jOTP will
-	# try when it sends text messages.
-	# Verizon=vtext.com
-	# AT&T=txt.att.net
-	# T-Mobile=tmomail.net
-	# Sprint=messaging.sprintpcs.com
-	# Boost Mobile=myboostmobile.com
-	# US Cellular=email.uscc.net
-	# Alltel=message.alltel.com
-	# Virgin Mobile=vmobl.com
-	MobileProviderHosts:
-	  - vtext.com
-	  - txt.att.net
-	  - messaging.sprintpcs.com
-	  - tmomail.net
+**smtp.host** SMTP server.
 
-	# List of all client (application users) of the system.  Each
-	# client has its own pool of tokens.  For example, if app1
-	# sends the token 'ABC' to test@example.com and app2
-	# simultaneously sends 'ABC' to test@example.com, 'ABC' could
-	# be validated against each of these pools successfully.
-	# Note that each client has its own password (used when sending
-	# requests to the system), as well settings for token length
-	# and maximum lifetime (in seconds).
-	Clients:
-	  - Name: app1
-	    Password: app1password
-	    MinOtpLength: 5
-		MaxOtpLength: 5
-		TokenLifetime: 90
-	  - Name: app2
-	    Password: app2password
-	    MinOtpLength: 10
-		MaxOtpLength: 10
-		TokenLifetime: 300
+**smtp.port** SMTP server port.
 
-### Other Configuration Guidelines
+**smtp.from** Email address to send emails from.
 
-* jOTP should, in theory, work on any Java web container implementing the Servlet 3.0
-	specification.  Testing has only taken place on Tomcat 7, however.
-* Be sure to enable SSL on any production instances of jOTP.
+**smtp.tls** If jOTP should connect to the SMTP server over TLS.
+
+**smtp.username** SMTP username.  Optional.
+
+**smtp.password** SMTP password.  Optional.
+
+**repository.type** Type of repository to use (`redis` or `jdbc`).  If not set, jOTP defaults to a local in-memory repository that is useful for local development but not recommended for production environments.
+
+### Redis Properties
+
+**redis.host** Redis server address.
+
+**redis.port** Redis server port.
+
+**redis.creds** Redis server credentials.  Optional.
+
+### JDBC Properties
+
+**jdbc.url** URL for connecting to DBMS.  Note that jOTP does not include any JDBC drivers so these will need to be added to your runtime classpath.
+
+**jdbc.table** Name of the table jOTP should use to store tokens in.  It should follow the following schema:
+
+	session    VARCHAR(255) PRIMARY KEY
+	token      VARCHAR(255) PRIMARY KEY
+	expiretime TIMESTAMP
