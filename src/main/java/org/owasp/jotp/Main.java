@@ -64,6 +64,10 @@ public class Main {
 		int smtpPort = getPropertyAsInt("smtp.port", true);
 		String smtpFrom = getPropertyAsString("smtp.from", true);
 		boolean smtpTls = getPropertyAsBoolean("smtp.tls", true);
+		String keystoreFile = getPropertyAsString("keystore.file", false);
+		String keystorePassword = getPropertyAsString("keystore.password", false);
+		String truststoreFile = getPropertyAsString("truststore.file", false);
+		String truststorePassword = getPropertyAsString("truststore.password", false);
 		
 		// configure repository
 		String repoType = getPropertyAsString("repository.type", false);
@@ -105,6 +109,10 @@ public class Main {
 		
 		// configure http server
 		port(port);
+		if (keystoreFile != null && keystorePassword != null
+				&& truststoreFile != null && truststorePassword != null) {
+			secure(keystoreFile, keystorePassword, truststoreFile, truststorePassword);
+		}
 		post("/sessions", (req, res) -> handleTokenGenerationRequest(req, res));
 		post("/sessions/:session", (req, res) -> handleTokenValidationRequest(req, res));
 		get("/", (req, res) -> handleMonitorRequest(req, res));
