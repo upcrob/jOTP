@@ -1,0 +1,19 @@
+{
+    "package": {
+        "name": "jOTP",
+        "repo": "generic",
+        "subject": "upcrob",
+        "desc": "OWASP jOTP is a microservice implemented in Java that can be used to generate, validate, and automatically expire one-time use password tokens.",
+        "website_url": "https://www.owasp.org/index.php/OWASP_JOTP_Project",
+        "issue_tracker_url": "https://github.com/upcrob/jOTP/issues",
+        "vcs_url": "https://github.com/upcrob/jOTP.git",
+        "licenses": ["BSD 2-Clause"]
+    },
+ 
+    "version": {
+        "name": "$version"
+    },
+ 
+    "files": [{"includePattern": "build/distributions/(.*)", "uploadPattern": "$1"}],
+    "publish": true
+}

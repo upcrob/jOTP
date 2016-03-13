@@ -1,3 +1,11 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
+deploy:
+  provider: bintray
+  file: "bintray.tmp"
+  user: "upcrob"
+  on:
+    tags: true
+  key:
+    secure: IjFQtGbzCnBpFOw/HcaP9rxIsVEeLzPQSx8pv73PAgh0cEck1X5xjAhLNx8CB9RDASuG7lYxI0jeaU5FD847ElMbJ+kZtAsw+R3pdTABW36di35EGBhbT1jL1HwrLgv+9iRyytmnvrlzbI1kqSmRKsMygAb7uInwe6A4SG5tjdc=

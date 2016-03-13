@@ -4,6 +4,7 @@
 .project
 .settings
 jotp.properties
+bintray.tmp
 *.log
 bin
 build

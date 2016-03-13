@@ -27,6 +27,13 @@ dependencies {
 	runtime 'com.sun.mail:javax.mail:1.5.1'
 }
 
+task bintrayDescriptor {
+	file('bintray.tmp').delete()
+	file('bintray.tmp') << file('bintray.json').text.replace('$version', project.version)
+}
+
 task wrapper(type: Wrapper) {
 	gradleVersion = '2.11'
 }
+
+build.dependsOn bintrayDescriptor
