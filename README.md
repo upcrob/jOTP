@@ -54,10 +54,10 @@ jOTP replaces `$token` in the message with the generated token and `$session` wi
 
 ## Configuration
 
-The following 2 JVM properties should be set:
+The following 2 JVM properties are used by the application.  These can be customized by setting the `JAVA_OPTS` environment variable.:
 
-* **propertyfiles** This should be a (comma-delimited) list of property files that jOTP should read when it starts up.
-* **logfile** This should be the absolute path of the file where jOTP logs should be written.  Log files will be rolled over hourly in the same directory.
+* **propertyfiles** This should be a (comma-delimited) list of property files that jOTP should read when it starts up.  This defaults to a file called `jotp.properties` located in the current working directory.
+* **logfile** This should be the absolute path of the file where jOTP logs should be written.  Log files will be rolled over hourly in the same directory.  This defaults to a file called `jotp.log` located in the current working directory.
 
 The following properties may be set in any of the property files specified in the `properyfiles` JVM property:
 
@@ -65,7 +65,7 @@ The following properties may be set in any of the property files specified in th
 
 **http.port** HTTP port the web server should listen on.
 
-**base.url** The base URL for the service (e.g. localhost:8080).  This is used to construct the `Location` header.
+**base.url** The base URL for the service (e.g. http://localhost:8080).  This is used to construct the `Location` header.
 
 **smtp.host** SMTP server.
 

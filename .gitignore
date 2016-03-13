@@ -3,5 +3,7 @@
 .gradle
 .project
 .settings
+jotp.properties
+*.log
 bin
 build
