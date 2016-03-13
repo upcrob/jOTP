@@ -21,7 +21,7 @@ import com.google.gson.*;
 import static spark.Spark.*;
 
 /**
- * jOTP driver class.
+ * jOTP main class.
  */
 public class Main {
 	

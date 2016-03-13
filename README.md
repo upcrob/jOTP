@@ -1,6 +1,7 @@
 # OWASP jOTP
 
 [![Build Status](https://travis-ci.org/upcrob/jOTP.png)](https://travis-ci.org/upcrob/jOTP)
+[![Download](https://api.bintray.com/packages/upcrob/generic/jOTP/images/download.svg)](https://bintray.com/upcrob/generic/jOTP/_latestVersion)
 
 [OWASP jOTP](https://www.owasp.org/index.php/OWASP_JOTP_Project) is a microservice for generating and validating one-time passwords as a secondary factor of authentication.
 
